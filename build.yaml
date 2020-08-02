@@ -1,0 +1,14 @@
+---
+    name: "Intros"
+    guid: "9482dc3b-48aa-4d3b-8224-9128d1e8e0cd"
+    version: "1.0.0.0"
+    targetAbi: "10.6.0.0"
+    overview: "Download flashy intros from prerolls.video"
+    description: >
+        Download flashy intros from prerolls.video for your movies.
+    category: "General"
+    owner: "dkanada"
+    artifacts:
+    - "Jellyfin.Plugin.Intros.dll"
+    changelog: >
+      changelog
