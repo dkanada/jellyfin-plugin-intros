@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Intros</title>
+</head>
+<body>
+    <div id="configPage" data-role="page" class="page type-interior pluginPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="configForm">
+                    <p>Only videos from <a is="emby-linkbutton" class="button-link emby-button" target="_blank" href="https://prerolls.video">prerolls.video</a> are used, and the files themselves are pulled from Vimeo directly.</p>
+                    <p>If you'd like to support my work I have a <a is="emby-linkbutton" class="button-link emby-button" target="_blank" href="https://github.com/sponsors/dkanada">GitHub Sponsors</a> page for my contributions to Jellyfin and other projects.</p>
+                    <div class="selectContainer">
+                        <label for="intro">Intro</label>
+                        <select is="emby-select" id="intro">
+                            <option value="442179153">Cinematic Explosion</option>
+                            <option value="442981865">Netflix</option>
+                            <option value="443076518">Colorful Transformation</option>
+                            <option value="443076479">Neon Particles</option>
+                            <option value="443081835">Cyberpunk</option>
+                            <option value="443076530">X Logo</option>
+                            <option value="443404335">Neon Blue</option>
+                            <option value="443076423">Blue Smoke</option>
+                            <option value="443081932">Dubstep</option>
+                            <option value="443125346">Elegant Short</option>
+                            <option value="440791181">Retro DVD Intro</option>
+                            <option value="440793415">Alamo Drafthouse No Talking</option>
+                            <option value="440978850">Alamo Drafthouse Shush</option>
+                            <option value="442118203">IT Crowd Anti-Piracy</option>
+                            <option value="443510978">No More!</option>
+                            <option value="440785270">Retro DVD Coming Soon</option>
+                            <option value="441615803">COVID-19 Social Distancing</option>
+                        </select>
+                    </div>
+                    <div class="selectContainer">
+                        <label for="resolution">Resolution</label>
+                        <select is="emby-select" id="resolution">
+                            <option value="240">240p</option>
+                            <option value="360">360p</option>
+                            <option value="480">480p</option>
+                            <option value="720">720p</option>
+                            <option value="1080">1080p</option>
+                            <option value="2160">2K</option>
+                            <option value="4320">4K</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script type="text/javascript">
+            var plugin = {
+                guid: '9482dc3b-48aa-4d3b-8224-9128d1e8e0cd'
+            };
+
+            $('#configPage').on('pageshow', function () {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(plugin.guid).then(function (config) {
+                    $('#intro').val(config.Intro).change();
+                    $('#resolution').val(config.Resolution).change();
+                    Dashboard.hideLoadingMsg();
+                });
+            });
+
+            $('#configForm').on('submit', function () {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(plugin.guid).then(function (config) {
+                    config.Intro = $('#intro').val();
+                    config.Resolution = $('#resolution').val();
+                    ApiClient.updatePluginConfiguration(plugin.guid, config).then(function (result) {
+                        Dashboard.processPluginConfigurationUpdateResult(result);
+                    });
+                });
+
+                return false;
+            });
+        </script>
+    </div>
+</body>
+</html>

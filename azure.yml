@@ -1,0 +1,49 @@
+trigger:
+  batch: true
+  branches:
+    include:
+    - '*'
+  tags:
+    include:
+    - '*'
+
+pr:
+  branches:
+    include:
+    - '*'
+
+jobs:
+- job: Build
+  displayName: Build
+
+  strategy:
+    matrix:
+      Release:
+        BuildConfiguration: Release
+        Suffix: release
+      Debug:
+        BuildConfiguration: Debug
+        Suffix: debug
+
+  pool:
+    vmImage: 'ubuntu-latest'
+
+  steps:
+  - task: UseDotNet@2
+    displayName: 'Update DotNet'
+    inputs:
+      packageType: sdk
+      version: 3.1.100
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Build Plugin'
+    inputs:
+      command: build
+      projects: 'Jellyfin.Plugin.Intros/Jellyfin.Plugin.Intros.csproj'
+      arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+
+  - task: PublishPipelineArtifact@0
+    displayName: 'Publish Artifact'
+    inputs:
+      targetPath: '$(Build.ArtifactStagingDirectory)/Jellyfin.Plugin.Intros.dll'
+      artifactName: 'jellyfin-plugin-intros-$(Suffix)'
