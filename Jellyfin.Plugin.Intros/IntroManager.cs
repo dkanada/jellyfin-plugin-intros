@@ -88,26 +88,17 @@ namespace Jellyfin.Plugin.Intros
                 }
             }
 
+            // remove old files for now
+            foreach (var file in Directory.EnumerateFiles(_cache))
+            {
+                File.Delete(file);
+            }
+
             using var client = new WebClient();
             client.DownloadFile(selection.url, Path(intro, selection.height));
 
-            // generate a video entity and strip keywords
-            var video = new Video
-            {
-                Id = Guid.NewGuid(),
-                Path = Path(intro, selection.height),
-                Name = config.video.title
-                    .Replace("jellyfin", string.Empty, StringComparison.InvariantCultureIgnoreCase)
-                    .Replace("pre-roll", string.Empty, StringComparison.InvariantCultureIgnoreCase)
-                    .Trim()
-            };
-
-            Plugin.Instance.Configuration.Id = video.Id;
-            Plugin.Instance.SaveConfiguration();
-
-            // insert the video into the database
-            // no clue why this is required if a method doesn't exist on the interface
-            Plugin.LibraryManager.CreateItem(video, null);
+            // should probably do this from the get method
+            UpdateLibrary(config.video.title, Path(intro, selection.height), intro);
         }
 
         private HttpWebRequest CreateRequest(string url)
@@ -135,6 +126,49 @@ namespace Jellyfin.Plugin.Intros
             _cookieContainer.Add(response.Cookies);
 
             return response;
+        }
+
+        private void UpdateLibrary(string title, string path, int intro)
+        {
+            var result = Plugin.LibraryManager.GetItemsResult(new InternalItemsQuery
+            {
+                HasAnyProviderId = new Dictionary<string, string>
+                {
+                    {"prerolls.video", "placeholder"}
+                }
+            });
+
+            // not working yet
+            // the query above returns no results
+            if (result.Items.Count > 0)
+            {
+                foreach (var item in result.Items)
+                {
+                    Plugin.LibraryManager.DeleteItem(item, new DeleteOptions());
+                }
+            }
+
+            // generate a video entity and strip keywords
+            var video = new Video
+            {
+                Id = Guid.NewGuid(),
+                Path = path,
+                ProviderIds = new Dictionary<string, string>
+                {
+                    {"prerolls.video", intro.ToString()}
+                },
+                Name = title
+                    .Replace("jellyfin", string.Empty, StringComparison.InvariantCultureIgnoreCase)
+                    .Replace("pre-roll", string.Empty, StringComparison.InvariantCultureIgnoreCase)
+                    .Trim()
+            };
+
+            Plugin.Instance.Configuration.Id = video.Id;
+            Plugin.Instance.SaveConfiguration();
+
+            // insert the video into the database
+            // no clue why this is required if a method doesn't exist on the interface
+            Plugin.LibraryManager.CreateItem(video, null);
         }
 
         private string Path(int intro, int resolution)
