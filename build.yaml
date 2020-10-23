@@ -1,7 +1,7 @@
 ---
 name: "Intros"
 guid: "9482dc3b-48aa-4d3b-8224-9128d1e8e0cd"
-version: "1.1.0.0"
+version: "1.1.1.0"
 targetAbi: "10.6.0.0"
 owner: "dkanada"
 overview: "Display flashy intros before movies and other videos"
