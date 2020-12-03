@@ -157,7 +157,7 @@
                 });
             });
 
-            document.querySelector('#configForm').addEventListener('submit', function () {
+            document.querySelector('#configForm').addEventListener('submit', function (event) {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(plugin.guid).then(function (config) {
                     config.Intro = document.querySelector('#intro').value;
@@ -169,6 +169,7 @@
                     });
                 });
 
+                event.preventDefault();
                 return false;
             });
         </script>
