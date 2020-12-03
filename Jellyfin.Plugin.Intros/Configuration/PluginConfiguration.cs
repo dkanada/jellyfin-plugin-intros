@@ -9,6 +9,8 @@ namespace Jellyfin.Plugin.Intros.Configuration
 
         public int Resolution { get; set; } = Plugin.DefaultResolution;
 
+        public bool Random { get; set; } = false;
+
         // used internally to track the current intro
         public Guid Id { get; set; }
     }
