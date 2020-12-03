@@ -119,6 +119,12 @@
                             <option value="4320">4K</option>
                         </select>
                     </div>
+                    <div class="checkboxContainer checkboxContainer-withDescripton">
+                        <label class="emby-checkbox-label">
+                            <input id="random" type="checkbox" is="emby-checkbox" />
+                            <span>Randomize Intro</span>
+                        </label>
+                    </div>
                     <div>
                         <button is="emby-button" type="submit" class="raised button-submit block emby-button">
                             <span>Save</span>
@@ -132,20 +138,32 @@
                 guid: '9482dc3b-48aa-4d3b-8224-9128d1e8e0cd'
             };
 
-            $('#configPage').on('pageshow', function () {
+            document.querySelector('#configPage').addEventListener('pageshow', function () {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(plugin.guid).then(function (config) {
-                    $('#intro').val(config.Intro).change();
-                    $('#resolution').val(config.Resolution).change();
+                    document.querySelector('#intro').value = config.Intro;
+                    document.querySelector('#resolution').value = config.Resolution;
+                    document.querySelector('#random').checked = config.Random;
+
+                    if (config.Random) {
+                        document.querySelector('#intro').disabled = true;
+                    }
+
+                    document.querySelector('#random').addEventListener('click', function () {
+                        document.querySelector('#intro').disabled = this.checked;
+                    });
+
                     Dashboard.hideLoadingMsg();
                 });
             });
 
-            $('#configForm').on('submit', function () {
+            document.querySelector('#configForm').addEventListener('submit', function () {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(plugin.guid).then(function (config) {
-                    config.Intro = $('#intro').val();
-                    config.Resolution = $('#resolution').val();
+                    config.Intro = document.querySelector('#intro').value;
+                    config.Resolution = document.querySelector('#resolution').value;
+                    config.Random = document.querySelector('#random').checked;
+
                     ApiClient.updatePluginConfiguration(plugin.guid, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });
