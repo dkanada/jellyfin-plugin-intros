@@ -13,6 +13,8 @@ namespace Jellyfin.Plugin.Intros
     {
         private readonly CookieContainer _cookieContainer = new CookieContainer();
 
+        private readonly Random _random = new Random();
+
         private readonly int[] _intros = {
             459725398,
             440978154,
@@ -67,10 +69,8 @@ namespace Jellyfin.Plugin.Intros
 
             if (Plugin.Instance.Configuration.Random)
             {
-                var random = new Random();
-
                 // TODO anything other than this hack
-                Plugin.Instance.Configuration.Intro = _intros[random.Next(_intros.Length)];
+                Plugin.Instance.Configuration.Intro = _intros[_random.Next(_intros.Length)];
             }
 
             // the first load will take longer since the video is downloading
