@@ -13,50 +13,6 @@ namespace Jellyfin.Plugin.Intros
     {
         private readonly CookieContainer _cookieContainer = new CookieContainer();
 
-        private readonly Random _random = new Random();
-
-        private readonly int[] _intros = {
-            459725398,
-            440978154,
-            440793415,
-            440978850,
-            462141918,
-            442118203,
-            456990827,
-            442744420,
-            459723868,
-            464974136,
-            464989433,
-            443076423,
-            443381251,
-            484072189,
-            483691239,
-            483129067,
-            483129129,
-            442179153,
-            443404430,
-            443082153,
-            443076524,
-            443076432,
-            443081703,
-            443076518,
-            441615803,
-            443076406,
-            443076410,
-            443081835,
-            443081756,
-            443404417,
-            443081683,
-            443076427,
-            443404395,
-            443081932,
-            440785270,
-            440791181,
-            443125346,
-            443076495,
-            445012069
-        };
-
         private readonly string _cache = Plugin.ApplicationPaths.CachePath + "/intros/";
 
         public IEnumerable<IntroInfo> Get()
@@ -69,8 +25,11 @@ namespace Jellyfin.Plugin.Intros
 
             if (Plugin.Instance.Configuration.Random)
             {
-                // TODO anything other than this hack
-                Plugin.Instance.Configuration.Intro = _intros[_random.Next(_intros.Length)];
+                Random _random = new Random();
+                string videolinks = Plugin.Instance.Configuration.OwnIntro;
+                string[] links = videolinks.Split(',',10,StringSplitOptions.RemoveEmptyEntries );
+                int playIntro = Int32.Parse(links[_random.Next(links.Length)]);
+                Plugin.Instance.Configuration.Intro = playIntro;
             }
 
             // the first load will take longer since the video is downloading

@@ -17,6 +17,8 @@ namespace Jellyfin.Plugin.Intros
 
         public const int DefaultIntro = 443404335;
 
+        public const string DefaultOwnIntros = "459725398,440978154,440793415,440978850,462141918";
+
         public const int DefaultResolution = 1080;
 
         public static Plugin Instance { get; private set; }

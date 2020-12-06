@@ -122,8 +122,13 @@
                     <div class="checkboxContainer checkboxContainer-withDescripton">
                         <label class="emby-checkbox-label">
                             <input id="random" type="checkbox" is="emby-checkbox" />
-                            <span>Randomize Intro</span>
+                            <span>Own Intro(s)</span>
                         </label>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputeLabel inputLabelUnfocused" for="ownIntro">IntroId(s)</label>
+                        <input id="ownIntro" name="ownIntro" type="text" is="emby-input" />
+                        <div class="fieldDescription">vimeolink id for own preroll, separate with "," for randomize </div>
                     </div>
                     <div>
                         <button is="emby-button" type="submit" class="raised button-submit block emby-button">
@@ -145,12 +150,16 @@
                     document.querySelector('#resolution').value = config.Resolution;
                     document.querySelector('#random').checked = config.Random;
 
+                    document.querySelector('#ownIntro').value = config.OwnIntro;
+
                     if (config.Random) {
                         document.querySelector('#intro').disabled = true;
+                        document.querySelector('#ownIntro').disabled = false;
                     }
 
                     document.querySelector('#random').addEventListener('click', function () {
                         document.querySelector('#intro').disabled = this.checked;
+                        document.querySelector('#ownIntro').disabled = !this.checked;
                     });
 
                     Dashboard.hideLoadingMsg();
@@ -163,6 +172,8 @@
                     config.Intro = document.querySelector('#intro').value;
                     config.Resolution = document.querySelector('#resolution').value;
                     config.Random = document.querySelector('#random').checked;
+
+                    config.OwnIntro = document.querySelector('#ownIntro').value;
 
                     ApiClient.updatePluginConfiguration(plugin.guid, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);

@@ -11,6 +11,8 @@ namespace Jellyfin.Plugin.Intros.Configuration
 
         public bool Random { get; set; } = false;
 
+        public string OwnIntro {get; set; } = Plugin.DefaultOwnIntros;
+
         // used internally to track the current intro
         public Guid Id { get; set; }
     }
