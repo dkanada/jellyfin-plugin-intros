@@ -11,6 +11,16 @@
                 <form id="configForm">
                     <p>Only videos from <a is="emby-linkbutton" class="button-link emby-button" target="_blank" href="https://prerolls.video">prerolls.video</a> are used, and the files themselves are pulled from Vimeo directly.</p>
                     <p>If you'd like to support my work I have a <a is="emby-linkbutton" class="button-link emby-button" target="_blank" href="https://github.com/sponsors/dkanada">GitHub Sponsors</a> page for my contributions to Jellyfin and other projects.</p>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="local">Local Source</label>
+                        <input id="local" is="emby-input" placeholder="/var/cache/jellyfin" />
+                        <div class="fieldDescription">Add a file or directory to use files instead of remote videos. Items in a directory will be randomized.</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="vimeo">Vimeo IDs</label>
+                        <input id="vimeo" is="emby-input" placeholder="375468729,35292474" />
+                        <div class="fieldDescription">Use custom videos instead of the predefined list below. Multiple videos can be added by separating them with commas.</div>
+                    </div>
                     <div class="selectContainer">
                         <label for="intro">Intro</label>
                         <select is="emby-select" id="intro">
@@ -119,7 +129,7 @@
                             <option value="4320">4K</option>
                         </select>
                     </div>
-                    <div class="checkboxContainer checkboxContainer-withDescripton">
+                    <div class="checkboxContainer checkboxContainer-withDescription">
                         <label class="emby-checkbox-label">
                             <input id="random" type="checkbox" is="emby-checkbox" />
                             <span>Randomize Intro</span>
@@ -141,13 +151,45 @@
             document.querySelector('#configPage').addEventListener('pageshow', function () {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(plugin.guid).then(function (config) {
+                    document.querySelector('#local').value = config.Local;
+                    document.querySelector('#vimeo').value = config.Vimeo;
                     document.querySelector('#intro').value = config.Intro;
                     document.querySelector('#resolution').value = config.Resolution;
                     document.querySelector('#random').checked = config.Random;
 
+                    if (config.Local) {
+                        document.querySelector('#vimeo').disabled = true;
+                        document.querySelector('#intro').disabled = true;
+                        document.querySelector('#resolution').disabled = true;
+                        document.querySelector('#random').disabled = true;
+                    }
+
+                    if (config.Vimeo) {
+                        document.querySelector('#local').disabled = true;
+                        document.querySelector('#intro').disabled = true;
+                        document.querySelector('#random').disabled = true;
+                    }
+
                     if (config.Random) {
                         document.querySelector('#intro').disabled = true;
                     }
+
+                    document.querySelector('#local').addEventListener('input', function () {
+                        if (this.value !== "") document.querySelector('#vimeo').value = "";
+
+                        document.querySelector('#vimeo').disabled = this.value !== "";
+                        document.querySelector('#intro').disabled = this.value !== "";
+                        document.querySelector('#resolution').disabled = this.value !== "";
+                        document.querySelector('#random').disabled = this.value !== "";
+                    });
+
+                    document.querySelector('#vimeo').addEventListener('input', function () {
+                        if (this.value !== "") document.querySelector('#local').value = "";
+
+                        document.querySelector('#local').disabled = this.value !== "";
+                        document.querySelector('#intro').disabled = this.value !== "";
+                        document.querySelector('#random').disabled = this.value !== "";
+                    });
 
                     document.querySelector('#random').addEventListener('click', function () {
                         document.querySelector('#intro').disabled = this.checked;
@@ -160,6 +202,8 @@
             document.querySelector('#configForm').addEventListener('submit', function (event) {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(plugin.guid).then(function (config) {
+                    config.Local = document.querySelector('#local').value;
+                    config.Vimeo = document.querySelector('#vimeo').value;
                     config.Intro = document.querySelector('#intro').value;
                     config.Resolution = document.querySelector('#resolution').value;
                     config.Random = document.querySelector('#random').checked;

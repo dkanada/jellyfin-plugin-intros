@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -67,17 +68,33 @@ namespace Jellyfin.Plugin.Intros
                 Cache(Plugin.DefaultIntro);
             }
 
-            if (Plugin.Instance.Configuration.Random)
+            var path = Intro(Plugin.Instance.Configuration.Intro, Plugin.Instance.Configuration.Resolution);
+            var selection = Plugin.Instance.Configuration.Intro;
+
+            if (Plugin.Instance.Configuration.Local != string.Empty)
             {
-                // TODO anything other than this hack
-                Plugin.Instance.Configuration.Intro = _intros[_random.Next(_intros.Length)];
+                Local(Plugin.Instance.Configuration.Local);
+
+                path = Plugin.Instance.Configuration.Local;
+            }
+            else if (Plugin.Instance.Configuration.Vimeo != string.Empty)
+            {
+                var options = Plugin.Instance.Configuration.Vimeo.Split(',');
+
+                int.TryParse(options[_random.Next(options.Length)], out selection);
+
+                path = Intro(selection, Plugin.Instance.Configuration.Resolution);
+            }
+            else if (Plugin.Instance.Configuration.Random)
+            {
+                selection = _intros[_random.Next(_intros.Length)];
+
+                path = Intro(selection, Plugin.Instance.Configuration.Resolution);
             }
 
-            // the first load will take longer since the video is downloading
-            var path = Path(Plugin.Instance.Configuration.Intro, Plugin.Instance.Configuration.Resolution);
             if (!File.Exists(path))
             {
-                Cache(Plugin.Instance.Configuration.Intro);
+                Cache(selection != 0 ? selection : 375468729);
             }
 
             // grab the ID again since it might have changed
@@ -86,6 +103,23 @@ namespace Jellyfin.Plugin.Intros
                 ItemId = Plugin.Instance.Configuration.Id,
                 Path = path
             };
+        }
+
+        private void Local(string path)
+        {
+            var options = new List<string>();
+            var location = File.GetAttributes(path);
+            if (location.HasFlag(FileAttributes.Directory))
+            {
+                options.AddRange(Directory.EnumerateFiles(path).ToList());
+            }
+            else
+            {
+                options.Add(path);
+            }
+
+            var selection = options[_random.Next(options.Count)];
+            UpdateLibrary(Path.GetFileName(selection), selection);
         }
 
         private void Cache(int intro)
@@ -145,10 +179,10 @@ namespace Jellyfin.Plugin.Intros
             }
 
             using var client = new WebClient();
-            client.DownloadFile(selection.url, Path(intro, selection.height));
+            client.DownloadFile(selection.url, Intro(intro, selection.height));
 
             // should probably do this from the get method
-            UpdateLibrary(config.video.title, Path(intro, selection.height), intro);
+            UpdateLibrary(config.video.title, Intro(intro, selection.height));
         }
 
         private HttpWebRequest CreateRequest(string url)
@@ -178,13 +212,13 @@ namespace Jellyfin.Plugin.Intros
             return response;
         }
 
-        private void UpdateLibrary(string title, string path, int intro)
+        private void UpdateLibrary(string title, string path)
         {
             var result = Plugin.LibraryManager.GetItemsResult(new InternalItemsQuery
             {
                 HasAnyProviderId = new Dictionary<string, string>
                 {
-                    {"prerolls.video", "placeholder"}
+                    {"prerolls.video", title}
                 }
             });
 
@@ -205,7 +239,7 @@ namespace Jellyfin.Plugin.Intros
                 Path = path,
                 ProviderIds = new Dictionary<string, string>
                 {
-                    {"prerolls.video", intro.ToString()}
+                    {"prerolls.video", title}
                 },
                 Name = title
                     .Replace("jellyfin", string.Empty, StringComparison.InvariantCultureIgnoreCase)
@@ -221,7 +255,7 @@ namespace Jellyfin.Plugin.Intros
             Plugin.LibraryManager.CreateItem(video, null);
         }
 
-        private string Path(int intro, int resolution)
+        private string Intro(int intro, int resolution)
         {
             return _cache + intro + "-" + resolution + ".mp4";
         }

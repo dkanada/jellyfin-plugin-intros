@@ -5,6 +5,10 @@ namespace Jellyfin.Plugin.Intros.Configuration
 {
     public class PluginConfiguration : BasePluginConfiguration
     {
+        public string Local { get; set; } = string.Empty;
+
+        public string Vimeo { get; set; } = string.Empty;
+
         public int Intro { get; set; } = Plugin.DefaultIntro;
 
         public int Resolution { get; set; } = Plugin.DefaultResolution;
