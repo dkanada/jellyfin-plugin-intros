@@ -31,5 +31,5 @@ jobs:
       with:
         artifacts: '*.zip'
         tag: ${{ steps.variables.outputs.version }}
-        commit: ${{ github.ref }}
+        commit: ${{ github.sha }}
         token: ${{ github.token }}
