@@ -5,17 +5,21 @@
 This is a plugin built with DotNet that can download flashy intros from <a href="https://prerolls.video">prerolls.video</a> for your movies.
 </p>
 
-## Install Process
+## Install
 
 1. Open the dashboard in Jellyfin, then select `Plugins` and open `Repositories` at the top.
 
 2. Click the `+` button, and add the repository URL below, naming it whatever you like. Save.
 
+```
+https://github.com/dkanada/jellyfin-plugin-intros/blob/master/manifest.json
+```
+
 3. Select `Catalog` at the top and click on 'Intros' at the very bottom of the list. Install the most recent version.
 
 4. Restart Jellyfin and go back to the plugin settings. Select `Installed` at the top and then 'Intros' to configure.
 
-## Build Process
+## Build
 
 1. Clone or download this repository.
 
