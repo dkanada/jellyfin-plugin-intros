@@ -1,0 +1,12 @@
+[
+  {
+    "guid": "9482dc3b-48aa-4d3b-8224-9128d1e8e0cd",
+    "name": "Intros",
+    "overview": "Display flashy intros before movies and other videos",
+    "description": "Select a flashy video from prerolls.video to run before any video content.",
+    "owner": "dkanada",
+    "category": "Other",
+    "versions": [
+    ]
+  }
+]
