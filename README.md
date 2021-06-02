@@ -7,24 +7,24 @@ This is a plugin built with DotNet that can download flashy intros from <a href=
 
 ## Install Process
 
-1. Open the Dashboard in Jellyfin, then under Advanced, select Plugins, and open Repositories from the top bar.
+1. Open the dashboard in Jellyfin, then select `Plugins` and open `Repositories` at the top.
 
-2. Click the '+' button, and add the Repository URL as 'https://dkanada.xyz/plugins/manifest.json', naming it whatever you like. Save.
+2. Click the `+` button, and add the repository URL below, naming it whatever you like. Save.
 
-3. Select Catalog from the top bar, and at the very bottom of the list will be 'Intros'. Click and install the most recent version.
+3. Select `Catalog` at the top and click on 'Intros' at the very bottom of the list. Install the most recent version.
 
-4. Restart Jellyfin, and go back to the Plugins category, select My Plugins from the top bar and then 'Intros' to configure.
+4. Restart Jellyfin and go back to the plugin settings. Select `Installed` at the top and then 'Intros' to configure.
 
 ## Build Process
 
-1. Clone or download this repository
+1. Clone or download this repository.
 
-2. Ensure you have DotNet Core SDK setup and installed
+2. Ensure you have the DotNet SDK set up and installed.
 
-3. Build plugin with following command
+3. Build the plugin with following commands.
 
 ```sh
-dotnet publish --configuration Release --output bin
+dotnet publish --configuration release --output bin
 ```
 
-4. Place the resulting file in the `plugins` folder
+4. Place the resulting binary in your `plugins` folder.
