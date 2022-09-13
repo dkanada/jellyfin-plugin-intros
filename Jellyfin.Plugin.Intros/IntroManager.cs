@@ -73,9 +73,7 @@ namespace Jellyfin.Plugin.Intros
 
             if (Plugin.Instance.Configuration.Local != string.Empty)
             {
-                Local(Plugin.Instance.Configuration.Local);
-
-                path = Plugin.Instance.Configuration.Local;
+                path = Local(Plugin.Instance.Configuration.Local);
             }
             else if (Plugin.Instance.Configuration.Vimeo != string.Empty)
             {
@@ -105,13 +103,13 @@ namespace Jellyfin.Plugin.Intros
             };
         }
 
-        private void Local(string path)
+        private string Local(string path)
         {
             var options = new List<string>();
             var location = File.GetAttributes(path);
             if (location.HasFlag(FileAttributes.Directory))
             {
-                options.AddRange(Directory.EnumerateFiles(path).ToList());
+                options.AddRange(Directory.EnumerateFiles(path));
             }
             else
             {
@@ -120,6 +118,7 @@ namespace Jellyfin.Plugin.Intros
 
             var selection = options[_random.Next(options.Count)];
             UpdateLibrary(Path.GetFileName(selection), selection);
+            return selection;
         }
 
         private void Cache(int intro)
