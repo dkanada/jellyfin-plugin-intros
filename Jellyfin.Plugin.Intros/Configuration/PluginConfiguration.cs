@@ -15,6 +15,10 @@ namespace Jellyfin.Plugin.Intros.Configuration
 
         public bool Random { get; set; } = false;
 
+        public bool ShowIntrosOnMovies { get; set; } = true;
+
+        public bool ShowIntrosOnEpisodes { get; set; } = false;
+
         // used internally to track the current intro
         public Guid Id { get; set; }
     }

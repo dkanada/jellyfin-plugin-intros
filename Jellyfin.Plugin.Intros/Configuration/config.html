@@ -135,6 +135,18 @@
                             <span>Randomize Intro</span>
                         </label>
                     </div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label for="showIntrosOnMovies" class="emby-checkbox-label">    
+                            <input id="showIntrosOnMovies" type="checkbox" is="emby-checkbox" />
+                            <span>Show Intros on Movies</span>
+                        </label>
+                    </div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label for="showIntrosOnEpisodes" class="emby-checkbox-label">    
+                            <input id="showIntrosOnEpisodes" type="checkbox" is="emby-checkbox" />
+                            <span>Show Intros on Episodes</span>
+                        </label>
+                    </div>
                     <div>
                         <button is="emby-button" type="submit" class="raised button-submit block emby-button">
                             <span>Save</span>
@@ -156,6 +168,8 @@
                     document.querySelector('#intro').value = config.Intro;
                     document.querySelector('#resolution').value = config.Resolution;
                     document.querySelector('#random').checked = config.Random;
+                    document.querySelector('#showIntrosOnMovies').checked = config.ShowIntrosOnMovies;
+                    document.querySelector('#showIntrosOnEpisodes').checked = config.ShowIntrosOnEpisodes;
 
                     if (config.Local) {
                         document.querySelector('#vimeo').disabled = true;
@@ -207,6 +221,8 @@
                     config.Intro = document.querySelector('#intro').value;
                     config.Resolution = document.querySelector('#resolution').value;
                     config.Random = document.querySelector('#random').checked;
+                    config.ShowIntrosOnMovies = document.querySelector("#showIntrosOnMovies").checked;
+                    config.ShowIntrosOnEpisodes = document.querySelector("#showIntrosOnEpisodes").checked;
 
                     ApiClient.updatePluginConfiguration(plugin.guid, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
