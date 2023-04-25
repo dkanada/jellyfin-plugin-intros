@@ -9,19 +9,15 @@ using MediaBrowser.Model.Serialization;
 
 namespace Jellyfin.Plugin.Intros
 {
-    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
+    public class Plugin : BasePlugin<IntroPluginConfiguration>, IHasWebPages
     {
         public override string Name => "Intros";
 
         public override Guid Id => Guid.Parse("9482dc3b-48aa-4d3b-8224-9128d1e8e0cd");
 
-        public const int DefaultIntro = 443404335;
-
         public const int DefaultResolution = 1080;
 
         public static Plugin Instance { get; private set; }
-
-        public static IApplicationPaths ApplicationPaths { get; private set; }
 
         public static ILibraryManager LibraryManager { get; private set; }
 
@@ -29,8 +25,6 @@ namespace Jellyfin.Plugin.Intros
             : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
-
-            ApplicationPaths = applicationPaths;
             LibraryManager = libraryManager;
         }
 

@@ -1,21 +1,23 @@
 using System;
+using System.Collections.Generic;
 using MediaBrowser.Model.Plugins;
 
 namespace Jellyfin.Plugin.Intros.Configuration
 {
-    public class PluginConfiguration : BasePluginConfiguration
+    public class IntroPluginConfiguration : BasePluginConfiguration
     {
         public string Local { get; set; } = string.Empty;
 
-        public string Vimeo { get; set; } = string.Empty;
+        public List<LocalVideo> DetectedLocalVideos { get; set; } = new List<LocalVideo>();
 
-        public int Intro { get; set; } = Plugin.DefaultIntro;
+        public List<Guid> EnabledLocalVideos { get; set; } = new List<Guid>();
 
-        public int Resolution { get; set; } = Plugin.DefaultResolution;
+    }
 
-        public bool Random { get; set; } = false;
+    public class LocalVideo
+    {
+        public string Name { get; set; }
 
-        // used internally to track the current intro
-        public Guid Id { get; set; }
+        public Guid ItemId { get; set; }
     }
 }

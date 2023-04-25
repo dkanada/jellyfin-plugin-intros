@@ -16,11 +16,5 @@ namespace Jellyfin.Plugin.Intros
             var introManager = new IntroManager();
             return Task.FromResult(introManager.Get());
         }
-
-        public IEnumerable<string> GetAllIntroFiles()
-        {
-            // not implemented on server
-            return Enumerable.Empty<string>();
-        }
     }
 }

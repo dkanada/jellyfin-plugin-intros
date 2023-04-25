@@ -2,7 +2,7 @@
 <h3 align="center">Part of the <a href="https://jellyfin.org">Jellyfin Project</a></h3>
 
 <p align="center">
-This is a plugin built with DotNet that can download flashy intros from <a href="https://prerolls.video">prerolls.video</a> for your movies.
+This is a plugin built with DotNet that can play flashy intros downloaded from the Discord server at <a href="https://prerolls.video">prerolls.video</a> for your movies.
 </p>
 
 ## Install

@@ -1,18 +1,21 @@
 name: 'Intros'
 guid: '9482dc3b-48aa-4d3b-8224-9128d1e8e0cd'
-version: '1.3.2.0'
+version: '2.0.0.0'
 targetAbi: '10.8.0.0'
 framework: 'net6.0'
 owner: 'dkanada'
 overview: 'Display flashy intros before movies and other videos'
 description: >
-  Select a flashy pre-roll from prerolls.video to run before any
-  video content. The videos will be cached locally when selected
-  to avoid buffering. After a new video is selected, the first
-  playback event will take anywhere from 10 to 40 seconds to start
-  while the pre-roll downloads.
+  Select a flashy pre-roll from local storage to run before any
+  video content. The video details are loaded from disk after a video
+  is played from the library from the beginning of the video.
+  A random video is selected, and all videos in the local directory
+  are enabled by default. Specific videos can be enabled or disabled 
+  as necessary. After videos are loaded for the first time, additional
+  videos found in the directory are not enabled by default.
+  
 category: 'Other'
 artifacts:
 - 'Jellyfin.Plugin.Intros.dll'
 changelog: >
-  Initial Release
+  Disabled Vimeo loading entirely, only plays back local videos.
