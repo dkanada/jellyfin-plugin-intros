@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      
     steps:
     - name: Repository
       uses: actions/checkout@v2
@@ -34,6 +35,8 @@ jobs:
       if: startsWith(github.ref, 'refs/tags')
       uses: ncipollo/release-action@v1.10.0
       with:
+        allowUpdates: true
+        replacesArtifacts: true
         artifacts: '*.zip'
         tag: ${{ steps.variables.outputs.version }}
         commit: ${{ github.sha }}
