@@ -12,7 +12,7 @@ This is a plugin built with DotNet that can play flashy intros downloaded from t
 2. Click the `+` button, and add the repository URL below, naming it whatever you like. Save.
 
 ```
-https://raw.githubusercontent.com/dkanada/jellyfin-plugin-intros/master/manifest.json
+https://raw.githubusercontent.com/BrianCArnold/jellyfin-plugin-intros/master/manifest.json
 ```
 
 3. Select `Catalog` at the top and click on 'Intros' at the very bottom of the list. Install the most recent version.

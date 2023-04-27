@@ -1,8 +1,13 @@
 name: main
-on: push
+on: 
+  push:
+    tags:
+      - "v*"
 jobs:
   main:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: Repository
       uses: actions/checkout@v2
@@ -27,7 +32,7 @@ jobs:
       run: zip jellyfin-plugin-intros-${version}.zip *.dll
     - name: Publish
       if: startsWith(github.ref, 'refs/tags')
-      uses: ncipollo/release-action@v1
+      uses: ncipollo/release-action@v1.10.0
       with:
         artifacts: '*.zip'
         tag: ${{ steps.variables.outputs.version }}
