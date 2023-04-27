@@ -9,11 +9,11 @@
         <div data-role="content">
             <div class="content-primary">
                 <form id="configForm">
-                    <p>Only videos from configured local storage are used. Some are available at <a is="emby-linkbutton" class="button-link emby-button" target="_blank" href="https://prerolls.video">prerolls.video</a>.
-                    <p>If you'd like to support my work I have a <a is="emby-linkbutton" class="button-link emby-button" target="_blank" href="https://github.com/sponsors/dkanada">GitHub Sponsors</a> page for my contributions to Jellyfin and other projects.</p>
+                    <p>Only videos from configured local storage are used. Some are available at <a is="emby-linkbutton" class="button-link emby-button" target="_blank" href="https://prerolls.video">the prerolls discord.</a>.</p>
+                    <p>This was forked from <a is="emby-linkbutton" class="button-link emby-button" target="_blank" href="https://github.com/dkanada">dkanada</a>'s preroll plugin.</p>
                     <div class="inputContainer">
                         <label class="inputLabel inputLabelUnfocused" for="local">Local Source</label>
-                        <input id="local" is="emby-input" placeholder="/var/cache/jellyfin" />
+                        <input id="local" is="emby-input" placeholder="/media/intros" />
                         <div class="fieldDescription">Location of intro videos</div>
                     </div>
                     <div class="checkboxContainer checkboxContainer-withDescription" id="videoSelection">
@@ -28,7 +28,7 @@
         </div>
         <script type="text/javascript">
             var plugin = {
-                guid: '9482dc3b-48aa-4d3b-8224-9128d1e8e0cd'
+                guid: '07d86795-01f2-4d22-b174-cdc6056c3e7c'
             };
 
             document.querySelector('#configPage').addEventListener('pageshow', function () {

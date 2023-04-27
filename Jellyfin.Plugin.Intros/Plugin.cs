@@ -11,9 +11,9 @@ namespace Jellyfin.Plugin.Intros
 {
     public class Plugin : BasePlugin<IntroPluginConfiguration>, IHasWebPages
     {
-        public override string Name => "Intros";
+        public override string Name => "Local Intros";
 
-        public override Guid Id => Guid.Parse("9482dc3b-48aa-4d3b-8224-9128d1e8e0cd");
+        public override Guid Id => Guid.Parse("07d86795-01f2-4d22-b174-cdc6056c3e7c");
 
         public const int DefaultResolution = 1080;
 
