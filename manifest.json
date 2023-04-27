@@ -14,6 +14,14 @@
         "sourceUrl": "https://github.com/BrianCArnold/jellyfin-plugin-intros/releases/download/v2.0.0.0/jellyfin-plugin-intros-v2.0.0.0.zip",
         "checksum": "6a64d90eaf9a6a3e14c3415bba607bf4",
         "timestamp": "2023-04-27T00:00:00Z"
+      },
+      {
+        "version": "2.1.0.0",
+        "changelog": "Added Genre, Studio, and Tag Intros",
+        "targetAbi": "10.8.0.0",
+        "sourceUrl": "https://github.com/BrianCArnold/jellyfin-plugin-intros/releases/download/v2.1.0.0/jellyfin-plugin-intros-v2.1.0.0.zip",
+        "checksum": "ca9d786648aef133f6f62e4086a96f2c",
+        "timestamp": "2023-04-27T08:00:00Z"
       }
     ]
   }
