@@ -9,7 +9,7 @@ using MediaBrowser.Model.Serialization;
 
 namespace Jellyfin.Plugin.LocalIntros
 {
-    public class Plugin : BasePlugin<IntroPluginConfiguration>, IHasWebPages
+    public class LocalIntrosPlugin : BasePlugin<IntroPluginConfiguration>, IHasWebPages
     {
         public override string Name => "Local Intros";
 
@@ -17,11 +17,11 @@ namespace Jellyfin.Plugin.LocalIntros
 
         public const int DefaultResolution = 1080;
 
-        public static Plugin Instance { get; private set; }
+        public static LocalIntrosPlugin Instance { get; private set; }
 
         public static ILibraryManager LibraryManager { get; private set; }
 
-        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, ILibraryManager libraryManager)
+        public LocalIntrosPlugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, ILibraryManager libraryManager)
             : base(applicationPaths, xmlSerializer)
         {
             Instance = this;

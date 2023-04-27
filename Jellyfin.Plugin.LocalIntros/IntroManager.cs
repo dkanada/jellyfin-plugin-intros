@@ -6,8 +6,12 @@ using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Jellyfin.Plugin.LocalIntros.Configuration;
+using Jellyfin.Data.Entities;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Entities.Movies;
+// using Jellyfin.Data.Entities.Libraries;
 
 namespace Jellyfin.Plugin.LocalIntros
 {
@@ -17,7 +21,7 @@ namespace Jellyfin.Plugin.LocalIntros
 
         private readonly Random _random = new Random();
 
-        public IEnumerable<IntroInfo> Get()
+        public IEnumerable<IntroInfo> Get(BaseItem item, User _)
         {
             // only relevant on first installation
             // if (Plugin.Instance.Configuration.Id == Guid.Empty)
@@ -26,161 +30,121 @@ namespace Jellyfin.Plugin.LocalIntros
             //     Cache(Plugin.DefaultIntro);
             // }
 
-            if (Plugin.Instance.Configuration.Local != string.Empty)
+            if (LocalIntrosPlugin.Instance.Configuration.Local != string.Empty)
             {
                 Console.WriteLine("Local Config Detected, retrieving local intros.");
-                yield return Local(Plugin.Instance.Configuration.Local);
+                return Local(item);
             }
             else 
             {
-                yield break;
+                return Enumerable.Empty<IntroInfo>();
             }
             
         }
 
-        private IntroInfo Local(string path)
+        private static string introsPath => LocalIntrosPlugin.Instance.Configuration.Local;
+
+        private (HashSet<string> tags, HashSet<string> genres, HashSet<string> studios) GetCriteriaList(BaseItem item)
         {
-            var options = new List<string>();
-            var location = File.GetAttributes(path);
+            switch (item.GetBaseItemKind())
+            {
+                case Data.Enums.BaseItemKind.Movie:
+                    var movie = item as Movie;
+                    return (movie.Tags.ToHashSet(),movie.Genres.ToHashSet(),movie.Studios.ToHashSet());
+                case Data.Enums.BaseItemKind.Episode:
+                    var episode = item as Episode;
+                    var season = episode.Season;
+                    var series = episode.Series;
+                    return (
+                        episode.Tags.Concat(season.Tags).Concat(series.Tags).ToHashSet(),
+                        episode.Genres.Concat(season.Genres).Concat(series.Genres).ToHashSet(),
+                        episode.Studios.Concat(season.Studios).Concat(series.Studios).ToHashSet());
+            }
+            var emp = new HashSet<string>();
+            return (emp,emp,emp);
+        }
 
-            var libraryResults = PopulateIntroLibrary(path).ToArray();
+        private IEnumerable<IntroInfo> Local(BaseItem item)
+        {
+            var location = File.GetAttributes(introsPath);
 
-            if (libraryResults.Length == 0)
+            var libraryResults = RetrieveIntroLibrary();
+
+            if (!libraryResults.Any())
             {
                 throw new Exception("No intros found in library");
             }
+
+            var (tags, genres, studios) = GetCriteriaList(item);
+
+            IEnumerable<ISpecialIntro> selectableIntros = Enumerable.Empty<ISpecialIntro>()
+            .Concat(LocalIntrosPlugin.Instance.Configuration.TagIntros.Where(t => tags.Any(x => x.Equals(t.TagName, StringComparison.OrdinalIgnoreCase))))
+            .Concat(LocalIntrosPlugin.Instance.Configuration.GenreIntros.Where(g => genres.Any(x => x.Equals(g.GenreName, StringComparison.OrdinalIgnoreCase))))
+            .Concat(LocalIntrosPlugin.Instance.Configuration.StudioIntros.Where(s => studios.Any(x => x.Equals(s.StudioName, StringComparison.OrdinalIgnoreCase))));
+
+            List<Guid> randomIntros;
+
+            if (selectableIntros.Any())
+            {
+                var highestPrev = selectableIntros.Max(i => i.Precedence);
+
+                var selectedIntros = selectableIntros.Where(i => i.Precedence == highestPrev);
+
+                randomIntros = selectedIntros.SelectMany(i => Enumerable.Repeat(i.IntroId, i.Prevalence)).Distinct().ToList();
+            }
             else 
             {
-                UpdateOptionsConfig(libraryResults);
+                randomIntros = LocalIntrosPlugin.Instance.Configuration.DefaultLocalVideos.Distinct().ToList();
             }
+            if (randomIntros.Any())
+            {
+                var selectedId = randomIntros[_random.Next(randomIntros.Count)];
 
-            var enabledItems = libraryResults.Where(b => Plugin.Instance.Configuration.EnabledLocalVideos.Contains(b.Id)).ToList();
+                Console.WriteLine($"Selected intro: {selectedId}");
 
-            var selectedItem = enabledItems[_random.Next(enabledItems.Count)];
-            return new IntroInfo{
-                Path = selectedItem.Path,
-                ItemId = selectedItem.Id
-            };
+                if (libraryResults.ContainsKey(selectedId))
+                {
+                    var selectedItem = libraryResults[selectedId];
+
+                    return new []{new IntroInfo
+                    {
+                        Path = selectedItem.Path,
+                        ItemId = selectedItem.Id
+                    }};
+                }
+                else
+                {
+                    throw new Exception("No intros found in library");
+                }
+            }
+            return Enumerable.Empty<IntroInfo>();
         }
 
         private void UpdateOptionsConfig(IEnumerable<BaseItem> libraryResults)
         {
-            Dictionary<Guid, string> options = libraryResults.ToDictionary(x => x.Id, x => x.Name);
-            Plugin.Instance.Configuration.DetectedLocalVideos = options.Select(x => new LocalVideo{
-                ItemId = x.Key,
-                Name = x.Value
+            // Dictionary so we can use ContainsKey
+            
+            if (LocalIntrosPlugin.Instance.Configuration.DefaultLocalVideos.Count + LocalIntrosPlugin.Instance.Configuration.StudioIntros.Count + LocalIntrosPlugin.Instance.Configuration.TagIntros.Count + LocalIntrosPlugin.Instance.Configuration.GenreIntros.Count == 0)
+            {
+                LocalIntrosPlugin.Instance.Configuration.DefaultLocalVideos.Add(libraryResults.First().Id);
+            }
+            //And then to the List as we need for saving. (XML can't serialize Dictionaries..)
+            LocalIntrosPlugin.Instance.Configuration.DetectedLocalVideos = libraryResults.Select(x => new IntroVideo{
+                ItemId = x.Id,
+                Name = x.Name
             }).ToList();
-            if (Plugin.Instance.Configuration.EnabledLocalVideos.Count == 0 || !Plugin.Instance.Configuration.EnabledLocalVideos.Any(x => options.ContainsKey(x)))
-            {
-                Plugin.Instance.Configuration.EnabledLocalVideos = options.Keys.ToList();
-            }
-            Plugin.Instance.SaveConfiguration();
+            LocalIntrosPlugin.Instance.SaveConfiguration();
         }
 
-        private IEnumerable<BaseItem> PopulateIntroLibrary(string path)
-        {
-            var attrs = File.GetAttributes(path);
-            if (attrs.HasFlag(FileAttributes.Directory))
+
+        private Dictionary<Guid, BaseItem> RetrieveIntroLibrary() => 
+            LocalIntrosPlugin.LibraryManager.GetItemsResult(new InternalItemsQuery
             {
-                var inLibrary = Plugin.LibraryManager.GetItemsResult(new InternalItemsQuery
+                HasAnyProviderId = new Dictionary<string, string>
                 {
-                    HasAnyProviderId = new Dictionary<string, string>
-                    {
-                        {"prerolls.video", ""}
-                    }
-                }).Items;
-
-                var byPath = inLibrary.ToDictionary(x => x.Path, x => x);
-
-                IDictionary<Guid, bool> isFound = inLibrary.ToDictionary(x => x.Id, x => false);
-
-                var byId = inLibrary.ToDictionary(x => x.Id, x => x);
-
-                var filesOnDisk = Directory.EnumerateFiles(path);
-
-                foreach (var file in filesOnDisk)
-                {
-                    if (byPath.ContainsKey(file))
-                    {
-                        yield return byPath[file];
-                        isFound[byPath[file].Id] = true;
-                    }
-                    else 
-                    {
-                        var video = new Video
-                        {
-                            Id = Guid.NewGuid(),
-                            Path = file,
-                            ProviderIds = new Dictionary<string, string>
-                            {
-                                {"prerolls.video", file}
-                            },
-                            Name = Path.GetFileNameWithoutExtension(file)
-                                .Replace("jellyfin", string.Empty, StringComparison.InvariantCultureIgnoreCase)
-                                .Replace("pre-roll", string.Empty, StringComparison.InvariantCultureIgnoreCase)
-                                .Replace("_", " ", StringComparison.InvariantCultureIgnoreCase)
-                                .Replace("-", " ", StringComparison.InvariantCultureIgnoreCase)
-                                .Trim()
-                        };
-                        Plugin.LibraryManager.CreateItem(video, null);
-                        yield return video;
-                    }
+                    {"prerolls.video", ""}
                 }
-                foreach (var item in isFound.Where(f => !f.Value))
-                {
-                    Plugin.LibraryManager.DeleteItem(byId[item.Key], new DeleteOptions());
-                }
-            }
-            else if (File.Exists(path))
-            {
-                var inLibrary = Plugin.LibraryManager.GetItemsResult(new InternalItemsQuery
-                {
-                    HasAnyProviderId = new Dictionary<string, string>
-                    {
-                        {"prerolls.video", ""}
-                    }
-                }).Items;
+            }).Items.ToDictionary(x => x.Id, x => x);
 
-                var byPath = inLibrary.ToDictionary(x => x.Path, x => x);
-
-                IDictionary<Guid, bool> isFound = inLibrary.ToDictionary(x => x.Id, x => false);
-
-                var byId = inLibrary.ToDictionary(x => x.Id, x => x);
-
-                if (byPath.ContainsKey(path))
-                {
-                    yield return byPath[path];
-                    isFound[byPath[path].Id] = true;
-                }
-                else 
-                {
-                    var video = new Video
-                    {
-                        Id = Guid.NewGuid(),
-                        Path = path,
-                        ProviderIds = new Dictionary<string, string>
-                        {
-                            {"prerolls.video", path}
-                        },
-                        Name = Path.GetFileNameWithoutExtension(path)
-                                .Replace("jellyfin", string.Empty, StringComparison.InvariantCultureIgnoreCase)
-                                .Replace("pre-roll", string.Empty, StringComparison.InvariantCultureIgnoreCase)
-                                .Replace("_", " ", StringComparison.InvariantCultureIgnoreCase)
-                                .Replace("-", " ", StringComparison.InvariantCultureIgnoreCase)
-                                .Trim()
-                    };
-                    Plugin.LibraryManager.CreateItem(video, null);
-                    yield return video;
-                }
-                foreach (var item in isFound.Where(f => !f.Value))
-                {
-                    Plugin.LibraryManager.DeleteItem(byId[item.Key], new DeleteOptions());
-                }
-            }
-            else 
-            {
-                throw new DirectoryNotFoundException($"Directory Not Found: {path}. Please check your configuration.");
-            }
-        }
    }
 }

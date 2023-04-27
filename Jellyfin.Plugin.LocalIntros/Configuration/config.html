@@ -16,8 +16,106 @@
                         <input id="local" is="emby-input" placeholder="/media/intros" />
                         <div class="fieldDescription">Location of intro videos</div>
                     </div>
-                    <div class="checkboxContainer checkboxContainer-withDescription" id="videoSelection">
+                    <div class="inputContainer">
+                        <button id="loadVideosBtn" is="emby-button" type="button" class="raised button-submit block emby-button">
+                            <span>Load Videos</span>
+                        </button>
+                        
                     </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="ruleSelection">Rule Type</label>
+                        <select id="ruleSelection" is="emby-select">
+                            <option value="default">Default</option>
+                            <option value="tag">Tag</option>
+                            <option value="genre">Genre</option>
+                            <option value="studio">Studio</option>
+                        </select>
+                        <div class="fieldDescription">Which kind of rule to add.</div>
+                    </div>
+                    <div class="inputContainer" id="tagSection">
+                        <label class="inputLabel inputLabelUnfocused" for="tagSelection">Tag</label>
+                        <input id="tagSelection" is="emby-input" type="text" />
+                        <div class="fieldDescription">Tag to use for intros</div>
+                    </div>
+                    <div class="inputContainer" id="genreSection">
+                        <label class="inputLabel inputLabelUnfocused" for="genreSelection">Genre</label>
+                        <select id="genreSelection" is="emby-select">
+                        </select>
+                        <div class="fieldDescription">Genre to use for intros</div>
+                    </div>
+                    <div class="inputContainer" id="studioSection">
+                        <label class="inputLabel inputLabelUnfocused" for="studioSelection">Studio</label>
+                        <select id="studioSelection" is="emby-select">
+                        </select>
+                        <div class="fieldDescription">Studio to use for intros</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="videoSelection">Intro</label>
+                        <select id="videoSelection" is="emby-select">
+                        </select>
+                        <div class="fieldDescription">Video to use for intros</div>
+                    </div>
+                    <div class="inputContainer" id="prevalenceSection">
+                        <label class="inputLabel inputLabelUnfocused" for="rulePrevalence">Prevalence</label>
+                        <input id="rulePrevalence" is="emby-input" type="number" value="1" min="1" name="rulePrevalence" />
+                        <div class="fieldDescription">How likely a video is to play <em>if</em> the rule applies. (16 is 8 times as likely as 2) </div>
+                    </div>
+                    <div class="inputContainer" id="precedenceSection">
+                        <label class="inputLabel inputLabelUnfocused" for="rulePrecedence">Precedence</label>
+                        <input id="rulePrecedence" is="emby-input" type="number" value="1" min="1" name="rulePrecedence" />
+                        <div class="fieldDescription">How important is the rule. If multiple rules both apply, only the ones with the highest equal precendence will be used for calculations.</div>
+                    </div>
+                    
+                    <div class="inputContainer">
+                        <button id="addRuleBtn" is="emby-button" type="button" class="raised button-submit block emby-button">
+                            <span>Add</span>
+                        </button>
+                    </div>
+
+
+                    <table class="detailTable">
+                        <caption class="clipForScreenReader">List of the currently enabled API keys</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col" class="detailTableHeaderCell">
+                                    Rule
+                                </th>
+                                <th scope="col" class="detailTableHeaderCell">
+                                    Intro
+                                </th>
+                                <th scope="col" class="detailTableHeaderCell">
+                                    Precedence
+                                </th>
+                                <th scope="col" class="detailTableHeaderCell">
+                                    Prevalence
+                                </th>
+                                <th scope="col" class="detailTableHeaderCell">
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="resultBody" id="ruleTable">
+                            <!-- <tr class="detailTableBodyRow detailTableBodyRow-shaded">
+                                <td class="detailTableBodyCell">
+                                    <button type="button" is="emby-button" data-token="b3d721993ac24ee6a52b0d842d9b3d9f" class="raised raised-mini btnRevoke emby-button" data-mini="true" title="Revoke" style="margin:0;">
+                                        Remove
+                                    </button>
+                                </td>
+                                <td class="detailTableBodyCell" style="vertical-align:middle;">
+                                    Tag
+                                </td>
+                                <td class="detailTableBodyCell" style="vertical-align:middle;">
+                                    Main
+                                </td>
+                                <td class="detailTableBodyCell" style="vertical-align:middle;">
+                                    1
+                                </td>
+                                <td class="detailTableBodyCell" style="vertical-align:middle;">
+                                    50
+                                </td>
+                            </tr> -->
+                        </tbody>
+                    </table>
+
                     <div>
                         <button is="emby-button" type="submit" class="raised button-submit block emby-button">
                             <span>Save</span>
@@ -27,49 +125,232 @@
             </div>
         </div>
         <script type="text/javascript">
-            var plugin = {
-                guid: '07d86795-01f2-4d22-b174-cdc6056c3e7c'
-            };
+            (() => {
+                var plugin = {
+                    guid: '07d86795-01f2-4d22-b174-cdc6056c3e7c'
+                };
 
-            document.querySelector('#configPage').addEventListener('pageshow', function () {
-                Dashboard.showLoadingMsg();
-                ApiClient.getPluginConfiguration(plugin.guid).then(function (config) {
-                    document.querySelector('#local').value = config.Local;
-                    
-                    var parentCheckboxList = $('#videoSelection');
+                var localIntroConfig = {
+                    Local: "",
+                    DetectedLocalVideos: [],
+                    DefaultLocalVideos: [],
+                    TagIntros: [], 
+                    GenreIntros: [],
+                    StudioIntros: []
+                };
 
-                    console.log(config.DetectedLocalVideos)
-                    for (var detectedVideo of config.DetectedLocalVideos) {
-                        var newItem = $("<label>").addClass("emby-checkbox-label");
-                        newItem.append(
-                            $("<input type='checkbox' is='emby-checkbox' />")
-                            .attr('id', detectedVideo.ItemId)
-                            .attr('name', 'selectedVideos')
-                            .prop('checked', config.EnabledLocalVideos.includes(detectedVideo.ItemId)));
-                        newItem.append($("<span>").text(detectedVideo.Name));
-                        parentCheckboxList.append(newItem);
+                var loadPage = () => {
+                    Dashboard.showLoadingMsg();
+
+                    //Tags? There's no canonical list of tags without searching *every* item in the database. Just *_NO_*.
+
+                    //Load Genres from Server.
+
+                    Promise.all([
+                        ApiClient.getGenres(ApiClient.getCurrentUserId()), 
+                        ApiClient.getStudios(ApiClient.getCurrentUserId()),
+                        ApiClient.getPluginConfiguration(plugin.guid)
+                    ]).then(([genreItems, studioItems, config]) => {
+                        localIntroConfig = config;
+
+                        document.querySelector('#local').value = config.Local;
+
+                        var parentCheckboxList = $('#videoSelection');
+                        for (var detectedVideo of config.DetectedLocalVideos) {
+                            var newItem = $("<option>");
+                            newItem.attr("value", detectedVideo.ItemId);
+                            newItem.text(detectedVideo.Name);
+                            parentCheckboxList.append(newItem);
+                        }
+
+                        var genres = genreItems.Items;
+                        var parentSelect = $('#genreSelection');
+                        for (var genre of genres) {
+                            var newItem = $("<option>");
+                            newItem.attr("value", genre.Name);
+                            newItem.text(genre.Name);
+                            parentSelect.append(newItem);
+                        }
+
+                        var studioItems = studioItems.Items;
+                        var parentSelect = $('#studioSelection');
+                        for (var studio of studioItems) {
+                            var newItem = $("<option>");
+                            newItem.attr("value", studio.Name);
+                            newItem.text(studio.Name);
+                            parentSelect.append(newItem);
+                        }
+
+                        updateUi();
+
+                        Dashboard.hideLoadingMsg();
+                    });
+                };
+
+                var loadVideos = () => {
+                    let url = ApiClient.getUrl('LocalIntros/LoadIntros');
+                    let data = {};
+                    ApiClient.ajax({ type: 'POST', url, data, contentType: 'application/json' }).then(() => {loadPage()}).catch(ev => alert(ev));
+                }
+
+                var addTagIntroRule = (introId, precedence, prevalence) => 
+                {
+                    var tagRule = {
+                        IntroId: introId,
+                        TagName: $('#tagSelection').val(),
+                        Precedence: precedence,
+                        Prevalence: prevalence
+                    };
+                    localIntroConfig.TagIntros.push(tagRule);
+                };
+                var addGenreIntroRule = (introId, precedence, prevalence) => 
+                {
+                    var genreRule = {
+                        IntroId: introId,
+                        GenreName: $('#genreSelection').val(),
+                        Precedence: precedence,
+                        Prevalence: prevalence
+                    };
+                    localIntroConfig.GenreIntros.push(genreRule);
+                };
+                var addStudioIntroRule = (introId, precedence, prevalence) => 
+                {
+                    var studioRule = {
+                        IntroId: introId,
+                        StudioName: $('#studioSelection').val(),
+                        Precedence: precedence,
+                        Prevalence: prevalence
+                    };
+                    localIntroConfig.StudioIntros.push(studioRule);
+                };
+                var addDefaultIntroRule = introId => 
+                {
+                    localIntroConfig.DefaultLocalVideos.push(introId);
+                };
+                var updateUi = () => {
+
+
+                    var ruleType = $('#ruleSelection').val();
+                    switch (ruleType) {
+                        case 'tag':
+                            $('#tagSection').show();
+                            $('#genreSection').hide();
+                            $('#studioSection').hide();
+                            $('#prevalenceSection').show();
+                            $('#precedenceSection').show();
+                            break;
+                        case 'genre':
+                            $('#tagSection').hide();
+                            $('#genreSection').show();
+                            $('#studioSection').hide();
+                            $('#prevalenceSection').show();
+                            $('#precedenceSection').show();
+                            break;
+                        case 'studio':
+                            $('#tagSection').hide();
+                            $('#genreSection').hide();
+                            $('#studioSection').show();
+                            $('#prevalenceSection').show();
+                            $('#precedenceSection').show();
+                            break;
+                        case 'default':
+                            $('#tagSection').hide();
+                            $('#genreSection').hide();
+                            $('#studioSection').hide();
+                            $('#prevalenceSection').hide();
+                            $('#precedenceSection').hide();
+                            break;
                     }
 
-                    Dashboard.hideLoadingMsg();
-                });
-            });
+                    var ruleTableBody = $('#ruleTable');
+                    ruleTableBody.empty();
 
-            document.querySelector('#configForm').addEventListener('submit', function (event) {
-                Dashboard.showLoadingMsg();
-                ApiClient.getPluginConfiguration(plugin.guid).then(function (config) {
-                    config.Local = document.querySelector('#local').value;
-                    config.EnabledLocalVideos = [];
-                    $("input[name='selectedVideos']:checked").each(function () {
-                        config.EnabledLocalVideos.push($(this).attr('id'));
+                    console.log(localIntroConfig);
+
+                    var getName = (id) => localIntroConfig.DetectedLocalVideos.find(video => video.ItemId === id).Name;
+
+                    var tagR = localIntroConfig.TagIntros.map((tag,i) => ({ type: 'Tag', name: tag.TagName, precedence: tag.Precedence, prevalence: tag.Prevalence, introName: getName(tag.IntroId), removeMe: () => {
+                        localIntroConfig.TagIntros.splice(i, 1);
+                        updateUi();
+                    } }));
+                    var genreR = localIntroConfig.GenreIntros.map((genre,i) => ({ type: 'Genre', name: genre.GenreName, precedence: genre.Precedence, prevalence: genre.Prevalence, introName: getName(genre.IntroId), removeMe: () => {
+                        localIntroConfig.GenreIntros.splice(i, 1);
+                        updateUi();
+                    } }));
+                    var studioR = localIntroConfig.StudioIntros.map((studio,i) => ({ type: 'Studio', name: studio.StudioName, precedence: studio.Precedence, prevalence: studio.Prevalence, introName: getName(studio.IntroId), removeMe: () => {
+                        localIntroConfig.StudioIntros.splice(i, 1);
+                        updateUi();
+                    } }));
+
+                    var defaults = localIntroConfig.DefaultLocalVideos.map((introId,i) => ({ type: 'Default', name: '', precedence: 0, prevalence: 0, introName: getName (introId), removeMe: () => {
+                        localIntroConfig.DefaultLocalVideos.splice(i, 1);
+                        updateUi();
+                    } }));
+                    //higher precedence first, so sort descending
+                    tagR.concat(genreR).concat(studioR).sort((a,b) => a.precedence < b.precedence ? 1 : -1).concat(defaults).forEach(rule => {
+                        var row = $('<tr>').addClass('detailTableBodyRow').addClass('detailTableBodyRow-shaded').append(
+                                        $('<td>').addClass('detailTableBodyCell').text(rule.type + ": " + rule.name)
+                                        ).append(
+                                        $('<td>').addClass('detailTableBodyCell').text(rule.introName)
+                                        ).append(
+                                        $('<td>').addClass('detailTableBodyCell').text(rule.precedence)
+                                        ).append(
+                                        $('<td>').addClass('detailTableBodyCell').text(rule.prevalence)
+                                        ).append(
+                                        $('<td>').addClass('detailTableBodyCell').append(
+                                            $('<button>')
+                                                .addClass('raised button-submit block emby-button')
+                                                .text('-')
+                                                .click(ev => rule.removeMe()))
+                                        );
+                        ruleTableBody.append(row);
                     });
-                    ApiClient.updatePluginConfiguration(plugin.guid, config).then(function (result) {
+
+                };
+
+                document.querySelector('#configPage').addEventListener('pageshow', () => loadPage());
+
+                $('#ruleSelection').change(ev => {
+                    updateUi();
+                });
+
+                $('#loadVideosBtn').click(ev => {
+                    loadVideos();
+                })
+
+                $('#addRuleBtn').click(ev => {
+                    var ruleType = $('#ruleSelection').val();
+                    var introId = $('#videoSelection').val();
+                    var rulePrecedence = $('#rulePrecedence').val() || 1;
+                    var rulePrevalence = $('#rulePrevalence').val() || 1;
+                    switch(ruleType) {
+                        case 'tag':
+                            addTagIntroRule(introId, rulePrecedence, rulePrevalence);
+                            break;
+                        case 'genre':
+                            addGenreIntroRule(introId, rulePrecedence, rulePrevalence);
+                            break;
+                        case 'studio':
+                            addStudioIntroRule(introId, rulePrecedence, rulePrevalence);
+                            break;
+                        default:
+                            addDefaultIntroRule(introId);
+                            break;
+                    }
+                    updateUi();
+                });
+
+                document.querySelector('#configForm').addEventListener('submit', function (event) {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.updatePluginConfiguration(plugin.guid, localIntroConfig).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });
-                });
 
-                event.preventDefault();
-                return false;
-            });
+                    event.preventDefault();
+                    return false;
+                });
+            })();
+            
         </script>
     </div>
 </body>

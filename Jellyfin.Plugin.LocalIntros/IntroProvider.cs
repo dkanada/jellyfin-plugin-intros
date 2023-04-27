@@ -14,7 +14,7 @@ namespace Jellyfin.Plugin.LocalIntros
         public Task<IEnumerable<IntroInfo>> GetIntros(BaseItem item, User user)
         {
             var introManager = new IntroManager();
-            return Task.FromResult(introManager.Get());
+            return Task.FromResult(introManager.Get(item, user));
         }
     }
 }
