@@ -5,7 +5,7 @@ using Jellyfin.Data.Entities;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 
-namespace Jellyfin.Plugin.Intros
+namespace Jellyfin.Plugin.LocalIntros
 {
     public class IntroProvider : IIntroProvider
     {

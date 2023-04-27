@@ -5,11 +5,11 @@ using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Jellyfin.Plugin.Intros.Configuration;
+using Jellyfin.Plugin.LocalIntros.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 
-namespace Jellyfin.Plugin.Intros
+namespace Jellyfin.Plugin.LocalIntros
 {
     public class IntroManager
     {

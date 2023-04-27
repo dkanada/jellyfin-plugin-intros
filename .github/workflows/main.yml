@@ -26,7 +26,7 @@ jobs:
     - name: Build
       run: dotnet build --configuration release
     - name: Move
-      run: mv Jellyfin.Plugin.Intros/bin/*/*/Jellyfin.Plugin.Intros.dll .
+      run: mv Jellyfin.Plugin.LocalIntros/bin/*/*/Jellyfin.Plugin.LocalIntros.dll .
     - name: Compress
       env:
         version: ${{ steps.variables.outputs.version }}

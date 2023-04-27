@@ -15,6 +15,6 @@ description: >
   videos found in the directory are not enabled by default.
 category: 'Other'
 artifacts:
-- 'Jellyfin.Plugin.Intros.dll'
+- 'Jellyfin.Plugin.LocalIntros.dll'
 changelog: >
   Disabled Vimeo loading entirely, only plays back local videos.
