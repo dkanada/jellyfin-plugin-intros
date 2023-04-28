@@ -1,6 +1,6 @@
 name: 'Local Intros'
 guid: '07d86795-01f2-4d22-b174-cdc6056c3e7c'
-version: '2.1.0.0'
+version: '2.1.0.1'
 targetAbi: '10.8.0.0'
 framework: 'net6.0'
 owner: 'BrianCArnold'

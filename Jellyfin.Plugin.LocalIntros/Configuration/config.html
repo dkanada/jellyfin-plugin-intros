@@ -153,9 +153,11 @@
                     ]).then(([genreItems, studioItems, config]) => {
                         localIntroConfig = config;
 
-                        document.querySelector('#local').value = config.Local;
 
+                        $('#local').val(config.Local);
+                        
                         var parentCheckboxList = $('#videoSelection');
+                        parentCheckboxList.empty();
                         for (var detectedVideo of config.DetectedLocalVideos) {
                             var newItem = $("<option>");
                             newItem.attr("value", detectedVideo.ItemId);
@@ -164,21 +166,23 @@
                         }
 
                         var genres = genreItems.Items;
-                        var parentSelect = $('#genreSelection');
+                        var genreSelect = $('#genreSelection');
+                        genreSelect.empty();
                         for (var genre of genres) {
                             var newItem = $("<option>");
                             newItem.attr("value", genre.Name);
                             newItem.text(genre.Name);
-                            parentSelect.append(newItem);
+                            genreSelect.append(newItem);
                         }
 
                         var studioItems = studioItems.Items;
-                        var parentSelect = $('#studioSelection');
+                        var studioSelect = $('#studioSelection');
+                        studioSelect.empty();
                         for (var studio of studioItems) {
                             var newItem = $("<option>");
                             newItem.attr("value", studio.Name);
                             newItem.text(studio.Name);
-                            parentSelect.append(newItem);
+                            studioSelect.append(newItem);
                         }
 
                         updateUi();
@@ -227,6 +231,10 @@
                 {
                     localIntroConfig.DefaultLocalVideos.push(introId);
                 };
+
+                var saveChanges = () => 
+                    ApiClient.updatePluginConfiguration(plugin.guid, localIntroConfig);
+
                 var updateUi = () => {
 
 
@@ -267,7 +275,13 @@
 
                     console.log(localIntroConfig);
 
-                    var getName = (id) => localIntroConfig.DetectedLocalVideos.find(video => video.ItemId === id).Name;
+                    var getName = (id) => { 
+                        if (id === null) return "None";
+                        for (var video of localIntroConfig.DetectedLocalVideos) {
+                            if (video.ItemId === id) return video.Name;
+                        }
+                        return "Unknown";
+                    }
 
                     var tagR = localIntroConfig.TagIntros.map((tag,i) => ({ type: 'Tag', name: tag.TagName, precedence: tag.Precedence, prevalence: tag.Prevalence, introName: getName(tag.IntroId), removeMe: () => {
                         localIntroConfig.TagIntros.splice(i, 1);
@@ -315,8 +329,12 @@
                 });
 
                 $('#loadVideosBtn').click(ev => {
-                    loadVideos();
+                    saveChanges().then(() => loadVideos());
                 })
+
+                $('#local').change(ev => {
+                    localIntroConfig.Local = $('#local').val();
+                });
 
                 $('#addRuleBtn').click(ev => {
                     var ruleType = $('#ruleSelection').val();
@@ -342,9 +360,10 @@
 
                 document.querySelector('#configForm').addEventListener('submit', function (event) {
                     Dashboard.showLoadingMsg();
-                    ApiClient.updatePluginConfiguration(plugin.guid, localIntroConfig).then(function (result) {
+
+                    saveChanges().then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
-                    });
+                    });;
 
                     event.preventDefault();
                     return false;
