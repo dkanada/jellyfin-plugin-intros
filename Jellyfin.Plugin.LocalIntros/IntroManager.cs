@@ -44,13 +44,13 @@ namespace Jellyfin.Plugin.LocalIntros
 
         private static string introsPath => LocalIntrosPlugin.Instance.Configuration.Local;
 
-        private (HashSet<string> tags, HashSet<string> genres, HashSet<string> studios) GetCriteriaList(BaseItem item)
+        private (HashSet<string> tags, HashSet<string> genres, HashSet<string> studios, DateTime now) GetCriteriaList(BaseItem item)
         {
             switch (item.GetBaseItemKind())
             {
                 case Data.Enums.BaseItemKind.Movie:
                     var movie = item as Movie;
-                    return (movie.Tags.ToHashSet(),movie.Genres.ToHashSet(),movie.Studios.ToHashSet());
+                    return (movie.Tags.ToHashSet(),movie.Genres.ToHashSet(),movie.Studios.ToHashSet(), DateTime.Now);
                 case Data.Enums.BaseItemKind.Episode:
                     var episode = item as Episode;
                     var season = episode.Season;
@@ -58,10 +58,12 @@ namespace Jellyfin.Plugin.LocalIntros
                     return (
                         episode.Tags.Concat(season.Tags).Concat(series.Tags).ToHashSet(),
                         episode.Genres.Concat(season.Genres).Concat(series.Genres).ToHashSet(),
-                        episode.Studios.Concat(season.Studios).Concat(series.Studios).ToHashSet());
+                        episode.Studios.Concat(season.Studios).Concat(series.Studios).ToHashSet(),
+                        DateTime.Now
+                    );
             }
             var emp = new HashSet<string>();
-            return (emp,emp,emp);
+            return (emp,emp,emp, DateTime.Now);
         }
 
         private IEnumerable<IntroInfo> Local(BaseItem item)
@@ -75,12 +77,13 @@ namespace Jellyfin.Plugin.LocalIntros
                 throw new Exception("No intros found in library");
             }
 
-            var (tags, genres, studios) = GetCriteriaList(item);
+            var (tags, genres, studios, now) = GetCriteriaList(item);
 
             IEnumerable<ISpecialIntro> selectableIntros = Enumerable.Empty<ISpecialIntro>()
             .Concat(LocalIntrosPlugin.Instance.Configuration.TagIntros.Where(t => tags.Any(x => x.Equals(t.TagName, StringComparison.OrdinalIgnoreCase))))
             .Concat(LocalIntrosPlugin.Instance.Configuration.GenreIntros.Where(g => genres.Any(x => x.Equals(g.GenreName, StringComparison.OrdinalIgnoreCase))))
-            .Concat(LocalIntrosPlugin.Instance.Configuration.StudioIntros.Where(s => studios.Any(x => x.Equals(s.StudioName, StringComparison.OrdinalIgnoreCase))));
+            .Concat(LocalIntrosPlugin.Instance.Configuration.StudioIntros.Where(s => studios.Any(x => x.Equals(s.StudioName, StringComparison.OrdinalIgnoreCase))))
+            .Concat(LocalIntrosPlugin.Instance.Configuration.CurrentDateIntros.Where(d => now.Date <= d.DateEnd && now.Date >= d.DateStart));
 
             List<Guid> randomIntros;
 

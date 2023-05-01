@@ -29,6 +29,7 @@
                             <option value="tag">Tag</option>
                             <option value="genre">Genre</option>
                             <option value="studio">Studio</option>
+                            <option value="currentDate">Current Date</option>
                         </select>
                         <div class="fieldDescription">Which kind of rule to add.</div>
                     </div>
@@ -48,6 +49,16 @@
                         <select id="studioSelection" is="emby-select">
                         </select>
                         <div class="fieldDescription">Studio to use for intros</div>
+                    </div>
+                    <div class="inputContainer" id="currentDateSection">
+                        <label class="inputLabel inputLabelUnfocused" for="currentDateStart">Start Date</label>
+                        <input id="currentDateStart" is="emby-input" type="date">
+                        </input>
+                        <div class="fieldDescription">Start Date for intros</div>
+                        <label class="inputLabel inputLabelUnfocused" for="currentDateEnd">End Date</label>
+                        <input id="currentDateEnd" is="emby-input" type="date">
+                        </input>
+                        <div class="fieldDescription">End Date for intros</div>
                     </div>
                     <div class="inputContainer">
                         <label class="inputLabel inputLabelUnfocused" for="videoSelection">Intro</label>
@@ -134,6 +145,8 @@
                 var plugin = {
                     guid: '07d86795-01f2-4d22-b174-cdc6056c3e7c'
                 };
+                
+                var cleanDate = str => str.split('T')[0];
 
                 var localIntroConfig = {
                     Local: "",
@@ -232,6 +245,17 @@
                     };
                     localIntroConfig.StudioIntros.push(studioRule);
                 };
+                var addCurrentDateIntroRule = (introId, precedence, prevalence) => 
+                {
+                    var currentDateRule = {
+                        IntroId: introId,
+                        DateStart: $('#currentDateStart').val(),
+                        DateEnd: $('#currentDateEnd').val(),
+                        Precedence: precedence,
+                        Prevalence: prevalence
+                    };
+                    localIntroConfig.CurrentDateIntros.push(currentDateRule);
+                };
                 var addDefaultIntroRule = introId => 
                 {
                     if (localIntroConfig.DefaultLocalVideos.includes(introId) == false) {
@@ -251,6 +275,7 @@
                             $('#tagSection').show();
                             $('#genreSection').hide();
                             $('#studioSection').hide();
+                            $('#currentDateSection').hide();
                             $('#prevalenceSection').show();
                             $('#precedenceSection').show();
                             $('#addAllSection').hide();
@@ -259,6 +284,7 @@
                             $('#tagSection').hide();
                             $('#genreSection').show();
                             $('#studioSection').hide();
+                            $('#currentDateSection').hide();
                             $('#prevalenceSection').show();
                             $('#precedenceSection').show();
                             $('#addAllSection').hide();
@@ -267,6 +293,16 @@
                             $('#tagSection').hide();
                             $('#genreSection').hide();
                             $('#studioSection').show();
+                            $('#currentDateSection').hide();
+                            $('#prevalenceSection').show();
+                            $('#precedenceSection').show();
+                            $('#addAllSection').hide();
+                            break;
+                        case 'currentDate':
+                            $('#tagSection').hide();
+                            $('#genreSection').hide();
+                            $('#studioSection').hide();
+                            $('#currentDateSection').show();
                             $('#prevalenceSection').show();
                             $('#precedenceSection').show();
                             $('#addAllSection').hide();
@@ -275,6 +311,7 @@
                             $('#tagSection').hide();
                             $('#genreSection').hide();
                             $('#studioSection').hide();
+                            $('#currentDateSection').hide();
                             $('#prevalenceSection').hide();
                             $('#precedenceSection').hide();
                             $('#addAllSection').show();
@@ -307,12 +344,26 @@
                         updateUi();
                     } }));
 
+                    var currentDateR = localIntroConfig.CurrentDateIntros.map((currentDate,i) => 
+                    ({ 
+                        type: 'Current Date', 
+                        name: cleanDate(currentDate.DateStart) + " - " + cleanDate(currentDate.DateEnd), 
+                        precedence: currentDate.Precedence, 
+                        prevalence: currentDate.Prevalence, 
+                        introName: getName(currentDate.IntroId), 
+                        removeMe: () => {
+                            localIntroConfig.CurrentDateIntros.splice(i, 1);
+                            updateUi();
+                        }
+                    })
+                    );
+
                     var defaults = localIntroConfig.DefaultLocalVideos.map((introId,i) => ({ type: 'Default', name: '', precedence: 0, prevalence: 0, introName: getName (introId), removeMe: () => {
                         localIntroConfig.DefaultLocalVideos.splice(i, 1);
                         updateUi();
                     } }));
                     //higher precedence first, so sort descending
-                    tagR.concat(genreR).concat(studioR).sort((a,b) => a.precedence < b.precedence ? 1 : -1).concat(defaults).forEach(rule => {
+                    tagR.concat(genreR).concat(studioR).concat(currentDateR).sort((a,b) => a.precedence < b.precedence ? 1 : -1).concat(defaults).forEach(rule => {
                         var row = $('<tr>').addClass('detailTableBodyRow').addClass('detailTableBodyRow-shaded').append(
                                         $('<td>').addClass('detailTableBodyCell').text(rule.type + ": " + rule.name)
                                         ).append(
@@ -369,6 +420,9 @@
                             break;
                         case 'studio':
                             addStudioIntroRule(introId, rulePrecedence, rulePrevalence);
+                            break;
+                        case 'currentDate':
+                            addCurrentDateIntroRule(introId, rulePrecedence, rulePrevalence);
                             break;
                         default:
                             addDefaultIntroRule(introId);
