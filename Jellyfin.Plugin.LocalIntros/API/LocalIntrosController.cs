@@ -53,119 +53,119 @@ public class LocalIntrosController : ControllerBase
     }
 
 
-        private static string introsPath => LocalIntrosPlugin.Instance.Configuration.Local;
+    private static string introsPath => LocalIntrosPlugin.Instance.Configuration.Local;
 
-        private Dictionary<Guid, BaseItem> PopulateIntroLibrary()
+    private Dictionary<Guid, BaseItem> PopulateIntroLibrary()
+    {
+        var attrs = System.IO.File.GetAttributes(introsPath);
+
+        bool needsConfigUpdate = false;
+
+        Dictionary<Guid, BaseItem> libraryResults = new Dictionary<Guid, BaseItem>();
+
+        var inLibrary = LocalIntrosPlugin.LibraryManager.GetItemsResult(new InternalItemsQuery
         {
-            var attrs = System.IO.File.GetAttributes(introsPath);
-
-            bool needsConfigUpdate = false;
-
-            Dictionary<Guid, BaseItem> libraryResults = new Dictionary<Guid, BaseItem>();
-
-            var inLibrary = LocalIntrosPlugin.LibraryManager.GetItemsResult(new InternalItemsQuery
+            HasAnyProviderId = new Dictionary<string, string>
             {
-                HasAnyProviderId = new Dictionary<string, string>
-                {
-                    {"prerolls.video", ""}
-                }
-            }).Items;
-
-            var byPath = inLibrary.ToDictionary(x => x.Path, x => x);
-
-            IDictionary<Guid, bool> isFound = inLibrary.ToDictionary(x => x.Id, x => false);
-
-            var byId = inLibrary.ToDictionary(x => x.Id, x => x);
-
-            IEnumerable<string> filesOnDisk;
-
-            if (attrs.HasFlag(FileAttributes.Directory))
-            {
-                filesOnDisk = Directory.EnumerateFiles(introsPath);
+                {"prerolls.video", ""}
             }
-            else if (System.IO.File.Exists(introsPath))
+        }).Items;
+
+        var byPath = inLibrary.ToDictionary(x => x.Path, x => x);
+
+        IDictionary<Guid, bool> isFound = inLibrary.ToDictionary(x => x.Id, x => false);
+
+        var byId = inLibrary.ToDictionary(x => x.Id, x => x);
+
+        IEnumerable<string> filesOnDisk;
+
+        if (attrs.HasFlag(FileAttributes.Directory))
+        {
+            filesOnDisk = Directory.EnumerateFiles(introsPath);
+        }
+        else if (System.IO.File.Exists(introsPath))
+        {
+            filesOnDisk = new List<string> { introsPath };
+        }
+        else 
+        {
+            throw new DirectoryNotFoundException($"Directory Not Found: {introsPath}. Please check your configuration.");
+        }
+
+        var configDetectedVideos = LocalIntrosPlugin.Instance.Configuration.DetectedLocalVideos.Select(x => x.ItemId).ToHashSet();
+
+        foreach (var file in filesOnDisk)
+        {
+            if (byPath.ContainsKey(file))
             {
-                filesOnDisk = new List<string> { introsPath };
+                Console.WriteLine($"Found {file} in library.");
+                isFound[byPath[file].Id] = true;
+                libraryResults[byPath[file].Id] = byPath[file];
+                if (!configDetectedVideos.Contains(byPath[file].Id))
+                {
+                    LocalIntrosPlugin.Instance.Configuration.DetectedLocalVideos.Add(new IntroVideo{
+                        ItemId = byPath[file].Id,
+                        Name = byPath[file].Name
+                    });
+                    needsConfigUpdate = true;
+                }
             }
             else 
-            {
-                throw new DirectoryNotFoundException($"Directory Not Found: {introsPath}. Please check your configuration.");
-            }
-
-            var configDetectedVideos = LocalIntrosPlugin.Instance.Configuration.DetectedLocalVideos.Select(x => x.ItemId).ToHashSet();
-
-            foreach (var file in filesOnDisk)
-            {
-                if (byPath.ContainsKey(file))
+            {   
+                Console.WriteLine($"Adding {file} to library.");
+                var video = new Video
                 {
-                    Console.WriteLine($"Found {file} in library.");
-                    isFound[byPath[file].Id] = true;
-                    libraryResults[byPath[file].Id] = byPath[file];
-                    if (!configDetectedVideos.Contains(byPath[file].Id))
+                    Id = Guid.NewGuid(),
+                    Path = file,
+                    ProviderIds = new Dictionary<string, string>
                     {
-                        LocalIntrosPlugin.Instance.Configuration.DetectedLocalVideos.Add(new IntroVideo{
-                            ItemId = byPath[file].Id,
-                            Name = byPath[file].Name
-                        });
-                        needsConfigUpdate = true;
-                    }
-                }
-                else 
-                {   
-                    Console.WriteLine($"Adding {file} to library.");
-                    var video = new Video
-                    {
-                        Id = Guid.NewGuid(),
-                        Path = file,
-                        ProviderIds = new Dictionary<string, string>
-                        {
-                            {"prerolls.video", file}
-                        },
-                        Name = Path.GetFileNameWithoutExtension(file)
-                            .Replace("jellyfin", string.Empty, StringComparison.InvariantCultureIgnoreCase)
-                            .Replace("pre-roll", string.Empty, StringComparison.InvariantCultureIgnoreCase)
-                            .Replace("_", " ", StringComparison.InvariantCultureIgnoreCase)
-                            .Replace("-", " ", StringComparison.InvariantCultureIgnoreCase)
-                            .Trim()
-                    };
-                    LocalIntrosPlugin.LibraryManager.CreateItem(video, null);
-                    needsConfigUpdate = true;
-                    libraryResults[video.Id] = video;
-                }
+                        {"prerolls.video", file}
+                    },
+                    Name = Path.GetFileNameWithoutExtension(file)
+                        .Replace("jellyfin", string.Empty, StringComparison.InvariantCultureIgnoreCase)
+                        .Replace("pre-roll", string.Empty, StringComparison.InvariantCultureIgnoreCase)
+                        .Replace("_", " ", StringComparison.InvariantCultureIgnoreCase)
+                        .Replace("-", " ", StringComparison.InvariantCultureIgnoreCase)
+                        .Trim()
+                };
+                LocalIntrosPlugin.LibraryManager.CreateItem(video, null);
+                needsConfigUpdate = true;
+                libraryResults[video.Id] = video;
             }
-            foreach (var item in isFound.Where(f => !f.Value))
-            {
-                Console.WriteLine($"Removing {byId[item.Key].Path} from library.");
-                LocalIntrosPlugin.LibraryManager.DeleteItem(byId[item.Key], new DeleteOptions());
-            }
-            if (libraryResults.Count > 0)
-            {
-                if (inLibrary.Count() == 0)
-                {
-                    LocalIntrosPlugin.Instance.Configuration.DefaultLocalVideos.Add(libraryResults.First().Key);
-                }
-                if (needsConfigUpdate) 
-                {
-                    UpdateOptionsConfig(libraryResults.Values);
-                }
-            }
-            return libraryResults;
         }
-
-        private void UpdateOptionsConfig(IEnumerable<BaseItem> libraryResults)
+        foreach (var item in isFound.Where(f => !f.Value))
         {
-            // Dictionary so we can use ContainsKey
-            
-            if (LocalIntrosPlugin.Instance.Configuration.DefaultLocalVideos.Count + LocalIntrosPlugin.Instance.Configuration.StudioIntros.Count + LocalIntrosPlugin.Instance.Configuration.TagIntros.Count + LocalIntrosPlugin.Instance.Configuration.GenreIntros.Count == 0)
-            {
-                LocalIntrosPlugin.Instance.Configuration.DefaultLocalVideos.Add(libraryResults.First().Id);
-            }
-            //And then to the List as we need for saving. (XML can't serialize Dictionaries..)
-            LocalIntrosPlugin.Instance.Configuration.DetectedLocalVideos = libraryResults.Select(x => new IntroVideo{
-                ItemId = x.Id,
-                Name = x.Name
-            }).ToList();
-            LocalIntrosPlugin.Instance.SaveConfiguration();
+            Console.WriteLine($"Removing {byId[item.Key].Path} from library.");
+            LocalIntrosPlugin.LibraryManager.DeleteItem(byId[item.Key], new DeleteOptions());
         }
+        if (libraryResults.Count > 0)
+        {
+            if (inLibrary.Count() == 0)
+            {
+                LocalIntrosPlugin.Instance.Configuration.DefaultLocalVideos.Add(libraryResults.First().Key);
+            }
+            if (needsConfigUpdate) 
+            {
+                UpdateOptionsConfig(libraryResults.Values);
+            }
+        }
+        return libraryResults;
+    }
+
+    private void UpdateOptionsConfig(IEnumerable<BaseItem> libraryResults)
+    {
+        // Dictionary so we can use ContainsKey
+        
+        if (LocalIntrosPlugin.Instance.Configuration.DefaultLocalVideos.Count + LocalIntrosPlugin.Instance.Configuration.StudioIntros.Count + LocalIntrosPlugin.Instance.Configuration.TagIntros.Count + LocalIntrosPlugin.Instance.Configuration.GenreIntros.Count == 0)
+        {
+            LocalIntrosPlugin.Instance.Configuration.DefaultLocalVideos.Add(libraryResults.First().Id);
+        }
+        //And then to the List as we need for saving. (XML can't serialize Dictionaries..)
+        LocalIntrosPlugin.Instance.Configuration.DetectedLocalVideos = libraryResults.Select(x => new IntroVideo{
+            ItemId = x.Id,
+            Name = x.Name
+        }).ToList();
+        LocalIntrosPlugin.Instance.SaveConfiguration();
+    }
 
 }

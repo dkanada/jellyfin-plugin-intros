@@ -71,6 +71,11 @@
                             <span>Add</span>
                         </button>
                     </div>
+                    <div class="inputContainer" id="addAllSection">
+                        <button id="addAllBtn" is="emby-button" type="button" class="raised button-submit block emby-button">
+                            <span>Add All</span>
+                        </button>
+                    </div>
 
 
                     <table class="detailTable">
@@ -229,7 +234,9 @@
                 };
                 var addDefaultIntroRule = introId => 
                 {
-                    localIntroConfig.DefaultLocalVideos.push(introId);
+                    if (localIntroConfig.DefaultLocalVideos.includes(introId) == false) {
+                        localIntroConfig.DefaultLocalVideos.push(introId);
+                    }
                 };
 
                 var saveChanges = () => 
@@ -246,6 +253,7 @@
                             $('#studioSection').hide();
                             $('#prevalenceSection').show();
                             $('#precedenceSection').show();
+                            $('#addAllSection').hide();
                             break;
                         case 'genre':
                             $('#tagSection').hide();
@@ -253,6 +261,7 @@
                             $('#studioSection').hide();
                             $('#prevalenceSection').show();
                             $('#precedenceSection').show();
+                            $('#addAllSection').hide();
                             break;
                         case 'studio':
                             $('#tagSection').hide();
@@ -260,6 +269,7 @@
                             $('#studioSection').show();
                             $('#prevalenceSection').show();
                             $('#precedenceSection').show();
+                            $('#addAllSection').hide();
                             break;
                         case 'default':
                             $('#tagSection').hide();
@@ -267,6 +277,7 @@
                             $('#studioSection').hide();
                             $('#prevalenceSection').hide();
                             $('#precedenceSection').hide();
+                            $('#addAllSection').show();
                             break;
                     }
 
@@ -335,6 +346,14 @@
                 $('#local').change(ev => {
                     localIntroConfig.Local = $('#local').val();
                 });
+
+                $('#addAllBtn').click(ev => {
+                    
+                    for (var video of localIntroConfig.DetectedLocalVideos) {
+                        addDefaultIntroRule(video.ItemId);
+                    }
+                    updateUi();
+                })
 
                 $('#addRuleBtn').click(ev => {
                     var ruleType = $('#ruleSelection').val();
