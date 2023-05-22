@@ -80,7 +80,7 @@ public class IntroProvider : IIntroProvider
 
     private IEnumerable<IntroInfo> Local(BaseItem item)
     {
-        if (!File.Exists(introsPath))
+        if (!File.Exists(introsPath) && !Directory.Exists(introsPath))
         {
             throw new Exception("No intros found in local path");
         }
@@ -149,7 +149,7 @@ public class IntroProvider : IIntroProvider
             }
             else
             {
-                throw new Exception("No intros found in library");
+                throw new Exception($"Selected intro ID: {selectedId} not found in library");
             }
         }
         return Enumerable.Empty<IntroInfo>();
