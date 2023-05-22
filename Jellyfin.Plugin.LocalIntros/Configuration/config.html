@@ -21,6 +21,10 @@
                             <span>Load Videos</span>
                         </button>
                         
+                        <button id="clearVideosBtn" is="emby-button" type="button" class="raised button-submit block emby-button">
+                            <span>Clean Intros (if you used old plugin)</span>
+                        </button>
+                        
                     </div>
                     <div class="inputContainer">
                         <label class="inputLabel inputLabelUnfocused" for="ruleSelection">Rule Type</label>
@@ -215,6 +219,12 @@
                     ApiClient.ajax({ type: 'POST', url, data, contentType: 'application/json' }).then(() => {loadPage()}).catch(ev => alert(ev));
                 }
 
+                var clearIntros = () => {
+                    let url = ApiClient.getUrl('LocalIntros/ClearIntros');
+                    let data = {};
+                    ApiClient.ajax({ type: 'POST', url, data, contentType: 'application/json' }).then(() => {loadPage()}).catch(ev => alert(ev));
+                }
+
                 var addTagIntroRule = (introId, precedence, prevalence) => 
                 {
                     var tagRule = {
@@ -392,7 +402,13 @@
 
                 $('#loadVideosBtn').click(ev => {
                     saveChanges().then(() => loadVideos());
-                })
+                });
+                
+                $('#clearVideosBtn').click(async ev => {
+                    await saveChanges();
+                    await clearIntros();
+                    await loadVideos();
+                });
 
                 $('#local').change(ev => {
                     localIntroConfig.Local = $('#local').val();

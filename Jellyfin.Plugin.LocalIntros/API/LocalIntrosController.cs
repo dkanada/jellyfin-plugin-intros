@@ -54,6 +54,26 @@ public class LocalIntrosController : ControllerBase
         PopulateIntroLibrary();
         return Ok();
     }
+    
+    [HttpPost("ClearIntros")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public IActionResult ClearIntros()
+    {
+        logger.LogInformation("Clearing Intros");
+        LocalIntrosPlugin.LibraryManager.GetItemsResult(new InternalItemsQuery
+        {
+            HasAnyProviderId = new Dictionary<string, string>
+            {
+                {"prerolls.video", ""}
+            }
+        }).Items.ToList().ForEach(x => 
+        {
+            logger.LogInformation($"Removing {x.Path} from library.");
+            LocalIntrosPlugin.LibraryManager.DeleteItem(x, new DeleteOptions());
+        });
+        return Ok();
+    }
 
 
     private static string introsPath => LocalIntrosPlugin.Instance.Configuration.Local;

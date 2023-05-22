@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Jellyfin.Plugin.LocalIntros</RootNamespace>
-    <AssemblyVersion>2.2.0.99</AssemblyVersion>
-    <FileVersion>2.2.0.99</FileVersion>
+    <AssemblyVersion>2.2.0.100</AssemblyVersion>
+    <FileVersion>2.2.0.100</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
