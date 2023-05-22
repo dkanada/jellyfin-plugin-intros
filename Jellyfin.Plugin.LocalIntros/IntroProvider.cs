@@ -118,8 +118,34 @@ public class IntroProvider : IIntroProvider
             var highestPrev = selectableIntros.Max(i => i.Precedence);
 
             var selectedIntros = selectableIntros.Where(i => i.Precedence == highestPrev);
+            
+            var maxNum = selectableIntros.Sum(i => i.Prevalence);
 
-            randomIntros += selectedIntros.SelectMany(i => Enumerable.Repeat(i.IntroId, i.Prevalence)).Distinct();
+            var minNum = 0;
+
+            var index = _random.Next(minNum, maxNum);
+            
+            logger.LogInformation($"Selecting intro from {minNum} to {maxNum}, selected index: {index}");
+            
+            foreach (var intro in selectedIntros)
+            {
+                if (index < intro.Prevalence)
+                {
+                    logger.LogInformation($"Selected intro: {intro.IntroId}");
+                    randomIntros += intro.IntroId;
+                    break;
+                }
+                else
+                {
+                    index -= intro.Prevalence;
+                }
+            }
+            if (randomIntros.Count == 0)
+            {
+                var selItem = selectedIntros.Last();
+                logger.LogInformation($"Selected intro: {selItem.IntroId}");
+                randomIntros += selItem.IntroId;
+            }
         }
         else 
         {
