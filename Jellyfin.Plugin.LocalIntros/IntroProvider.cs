@@ -193,7 +193,7 @@ public class IntroProvider : IIntroProvider
         LocalIntrosPlugin.Instance.Configuration.DetectedLocalVideos = libraryResults.Select(x => new IntroVideo{
             ItemId = x.Id,
             Name = x.Name
-        }).ToList();
+        }).OrderBy(i => i.Name).ToList();
         LocalIntrosPlugin.Instance.SaveConfiguration();
     }
 
