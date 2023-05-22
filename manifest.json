@@ -38,6 +38,14 @@
         "sourceUrl": "https://github.com/BrianCArnold/jellyfin-plugin-intros/releases/download/v2.2.0.0/jellyfin-plugin-intros-v2.2.0.0.zip",
         "checksum": "d991c90295688bb0888d105c0f111b25",
         "timestamp": "2023-05-01T00:00:00Z"
+      },
+      {
+        "version": "2.2.0.99",
+        "changelog": "Added Current Date Filter and Add-All button",
+        "targetAbi": "10.8.0.0",
+        "sourceUrl": "https://github.com/BrianCArnold/jellyfin-plugin-intros/releases/download/v2.2.0.99/jellyfin-plugin-intros-v2.2.0.99.zip",
+        "checksum": "5787a8bc3200f30d5d2703ce182e9747",
+        "timestamp": "2023-05-22T00:00:00Z"
       }
     ]
   }
